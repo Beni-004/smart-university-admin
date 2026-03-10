@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import time
@@ -84,16 +85,16 @@ async def query_database(request: QueryRequest):
         # Get relevant tables
         schema_text = optimizer.get_relevant_tables(question)
         
-        # Generate SQL using Ollama
-        sql = ollama_client.generate_sql(question, schema_text)
+        # Generate SQL using Ollama (blocking I/O → run in thread pool)
+        sql = await run_in_threadpool(ollama_client.generate_sql, question, schema_text)
         
         # Validate SQL
         is_safe, message = validator.is_safe_query(sql)
         if not is_safe:
             raise HTTPException(status_code=400, detail=f"Unsafe query: {message}")
         
-        # Execute SQL
-        results = db.execute_query(sql)
+        # Execute SQL (blocking I/O → run in thread pool)
+        results = await run_in_threadpool(db.execute_query, sql)
         
         # Prepare response
         response = {

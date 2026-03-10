@@ -1,22 +1,36 @@
-import psycopg2
+import sqlite3
+import os
 from faker import Faker
 import random
 from datetime import datetime, timedelta
 
-# Database connection
-DATABASE_URL = "postgresql://postgres:postgres123@localhost:5432/university_db"
+# Database path (relative to this script's location)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(SCRIPT_DIR, "..", "backend", "university.db")
+SCHEMA_PATH = os.path.join(SCRIPT_DIR, "schema.sql")
 
 fake = Faker()
-conn = psycopg2.connect(DATABASE_URL)
+
+# Connect to SQLite database
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
+cursor.execute("PRAGMA foreign_keys = OFF")  # Disable FK checks while loading
 
 print("🚀 Starting fake data generation...")
+
+# Apply schema (create tables)
+print("🗄️  Applying schema...")
+with open(SCHEMA_PATH, "r") as f:
+    schema_sql = f.read()
+conn.executescript(schema_sql)
+conn.commit()
+print("✅ Schema applied")
 
 # Clear existing data
 print("🗑️  Clearing existing data...")
 tables = ['placements', 'grades', 'attendance', 'enrollments', 'courses', 'students', 'hostels', 'departments']
 for table in tables:
-    cursor.execute(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE")
+    cursor.execute(f"DELETE FROM {table}")
 conn.commit()
 
 # 1. Generate Departments
@@ -32,7 +46,7 @@ departments = [
 
 for dept in departments:
     cursor.execute(
-        "INSERT INTO departments (name, hod_name, building) VALUES (%s, %s, %s)",
+        "INSERT INTO departments (name, hod_name, building) VALUES (?, ?, ?)",
         dept
     )
 conn.commit()
@@ -49,7 +63,7 @@ hostels = [
 
 for hostel in hostels:
     cursor.execute(
-        "INSERT INTO hostels (name, capacity, warden_name) VALUES (%s, %s, %s)",
+        "INSERT INTO hostels (name, capacity, warden_name) VALUES (?, ?, ?)",
         hostel
     )
 conn.commit()
@@ -72,7 +86,7 @@ for i in range(1, students_count + 1):
     
     cursor.execute("""
         INSERT INTO students (roll_number, name, email, phone, department_id, hostel_id, gpa, admission_year)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (roll_number, name, email, phone, department_id, hostel_id, gpa, admission_year))
 
 conn.commit()
@@ -96,7 +110,7 @@ courses = [
 for course in courses:
     cursor.execute("""
         INSERT INTO courses (course_code, course_name, credits, department_id, semester)
-        VALUES (%s, %s, %s, %s, %s)
+        VALUES (?, ?, ?, ?, ?)
     """, course)
 
 conn.commit()
@@ -118,9 +132,8 @@ for student_id in student_ids:
     
     for course_id in selected_courses:
         cursor.execute("""
-            INSERT INTO enrollments (student_id, course_id)
-            VALUES (%s, %s)
-            ON CONFLICT DO NOTHING
+            INSERT OR IGNORE INTO enrollments (student_id, course_id)
+            VALUES (?, ?)
         """, (student_id, course_id))
         enrollments_count += 1
 
@@ -144,10 +157,9 @@ for student_id, course_id in enrollments:
             present = random.choices([True, False], weights=[0.8, 0.2])[0]  # 80% attendance rate
             
             cursor.execute("""
-                INSERT INTO attendance (student_id, course_id, date, present)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT DO NOTHING
-            """, (student_id, course_id, date, present))
+                INSERT OR IGNORE INTO attendance (student_id, course_id, date, present)
+                VALUES (?, ?, ?, ?)
+            """, (student_id, course_id, date.strftime('%Y-%m-%d'), 1 if present else 0))
             attendance_count += 1
 
 conn.commit()
@@ -180,8 +192,8 @@ for student_id, course_id in enrollments:
         
         cursor.execute("""
             INSERT INTO grades (student_id, course_id, exam_type, score, grade, exam_date)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (student_id, course_id, exam_type, score, grade, exam_date))
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (student_id, course_id, exam_type, score, grade, str(exam_date)))
         grades_count += 1
 
 conn.commit()
@@ -211,8 +223,8 @@ for student_id in placed_students:
     
     cursor.execute("""
         INSERT INTO placements (student_id, company_name, job_role, package, placement_date)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (student_id, company, role, package, placement_date))
+        VALUES (?, ?, ?, ?, ?)
+    """, (student_id, company, role, package, str(placement_date)))
     placements_count += 1
 
 conn.commit()

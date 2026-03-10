@@ -41,12 +41,27 @@ async function sendQuery() {
     hideResults();
     disableInput(true);
     
+    // Continuous elapsed-time ticker so the UI never looks frozen
+    const startTime = Date.now();
+    const stages = [
+        [0,    'Analyzing your question...'],
+        [800,  'Finding relevant tables...'],
+        [2000, 'Generating SQL with AI — this may take up to 60s...'],
+        [10000, '⏳ AI is thinking, please wait...'],
+        [30000, '⏳ Almost there, still generating SQL...'],
+    ];
+    let stageIndex = 0;
+    const tickerInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        // Advance stage
+        while (stageIndex < stages.length - 1 && elapsed >= stages[stageIndex + 1][0]) {
+            stageIndex++;
+        }
+        const secs = (elapsed / 1000).toFixed(0);
+        updateLoadingMessage(`${stages[stageIndex][1]} (${secs}s)`);
+    }, 500);
+
     try {
-        // Update loading message
-        setTimeout(() => updateLoadingMessage('Finding relevant tables...'), 500);
-        setTimeout(() => updateLoadingMessage('Generating SQL query...'), 1500);
-        setTimeout(() => updateLoadingMessage('Executing query...'), 3000);
-        
         // Call API
         const response = await fetch(`${API_BASE_URL}/query`, {
             method: 'POST',
@@ -74,6 +89,7 @@ async function sendQuery() {
         addMessage(`❌ Error: ${error.message}`, 'error-message');
         hideResults();
     } finally {
+        clearInterval(tickerInterval);
         hideLoading();
         disableInput(false);
         updateCacheStats();
