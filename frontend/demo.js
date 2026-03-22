@@ -1,10 +1,10 @@
-const DEMO_API = 'http://localhost:8000/api';
+const DEMO_API = (window.APP_CONFIG?.apiBase) ?? 'http://localhost:8000/api';
 
-// DOM refs
-const tabChat   = document.getElementById('tab-chat');
-const tabDemo   = document.getElementById('tab-demo');
-const chatPanel = document.getElementById('chat-panel');
-const demoPanel = document.getElementById('demo-panel');
+// DOM refs - Updated for vertical scroll layout
+const tabChat   = document.getElementById('tab-chat') || null;
+const tabDemo   = document.getElementById('tab-demo') || null;
+const chatPanel = document.getElementById('chat-panel') || null;
+const demoPanel = document.getElementById('demo-panel') || null;
 
 // Presenter state
 let allCategories   = [];
@@ -13,21 +13,23 @@ let currentIndex    = 0;
 let categoryData    = {};
 let demoInitialised = false;
 
-// ── Tab switching ──
-tabChat.addEventListener('click', () => {
-  tabChat.classList.add('active');
-  tabDemo.classList.remove('active');
-  chatPanel.style.display = '';
-  demoPanel.style.display = 'none';
-});
+// ── Tab switching (backward compatibility) ──
+if (tabChat && tabDemo) {
+  tabChat.addEventListener('click', () => {
+    tabChat.classList.add('active');
+    tabDemo.classList.remove('active');
+    if (chatPanel) chatPanel.style.display = '';
+    if (demoPanel) demoPanel.style.display = 'none';
+  });
 
-tabDemo.addEventListener('click', () => {
-  tabDemo.classList.add('active');
-  tabChat.classList.remove('active');
-  chatPanel.style.display = 'none';
-  demoPanel.style.display = '';
-  if (!demoInitialised) { demoInitialised = true; initPresenter(); }
-});
+  tabDemo.addEventListener('click', () => {
+    tabDemo.classList.add('active');
+    tabChat.classList.remove('active');
+    if (chatPanel) chatPanel.style.display = 'none';
+    if (demoPanel) demoPanel.style.display = '';
+    if (!demoInitialised) { demoInitialised = true; initPresenter(); }
+  });
+}
 
 // Keyboard nav
 document.addEventListener('keydown', (e) => {

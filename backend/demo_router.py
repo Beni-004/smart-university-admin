@@ -7,8 +7,28 @@ Endpoints:
 """
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Optional
 from database import db
 from demo_queries import DEMO_QUERIES
+
+
+class QueryResult(BaseModel):
+    title: str
+    question: str
+    sql: str
+    columns: list[str]
+    rows: list[list[str]]
+    row_count: int
+    error: Optional[str] = None
+
+
+class CategoryResponse(BaseModel):
+    category: str
+    label: str
+    section: str
+    queries: list[QueryResult]
+
 
 router = APIRouter(tags=["demo"])
 
@@ -26,7 +46,7 @@ async def get_categories():
     return {"categories": categories}
 
 
-@router.get("/demo/{category}")
+@router.get("/demo/{category}", response_model=CategoryResponse)
 async def get_category_results(category: str):
     """Execute all queries in a category and return results."""
     if category not in DEMO_QUERIES:

@@ -1,8 +1,10 @@
+"""LLM routing: Groq primary, Ollama fallback."""
 from groq import Groq
 import groq
 from rag_context import RAGContext
 from ollama_client import ollama_client
 from config import config
+from utils import clean_sql
 
 class LLMRouter:
     def __init__(self):
@@ -12,7 +14,7 @@ class LLMRouter:
         
     def generate_sql(self, question: str) -> str:
         prompt = self.rag.build_prompt(question)
-        
+
         try:
             response = self.groq_client.chat.completions.create(
                 model=self.model,
@@ -22,13 +24,10 @@ class LLMRouter:
                 temperature=0.1
             )
             sql = response.choices[0].message.content.strip()
-            # Clean up the SQL
-            sql = sql.replace("```sql", "").replace("```", "")
-            sql = " ".join(sql.split())
-            sql = sql.rstrip(";")
+            sql = clean_sql(sql)
             print("✅ Groq generated SQL successfully.")
             return sql
-            
+
         except groq.RateLimitError as e:
             print(f"⚠️ Groq RateLimitError, routing to Ollama: {e}")
             return ollama_client.generate_sql(prompt)

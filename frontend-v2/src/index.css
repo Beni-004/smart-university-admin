@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  * {
+    @apply scroll-smooth;
+  }
+
+  html, body {
+    @apply overflow-x-hidden;
+    overflow-y: auto;
+    height: auto;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-black text-zinc-100 antialiased;
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0f141f 100%);
+    position: relative;
+  }
+
+  /* Dark Veil Background with Animated Particles */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: -2;
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0f141f 100%);
+    animation: gradientShift 20s ease-in-out infinite;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 20% 50%, rgba(79, 70, 229, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+    animation: overlayFloat 15s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0f141f 100%);
+  }
+  50% {
+    background: linear-gradient(135deg, #0f141f 0%, #0a0e1a 50%, #1a1f2e 100%);
+  }
+}
+
+@keyframes overlayFloat {
+  0% {
+    background:
+      radial-gradient(circle at 20% 50%, rgba(79, 70, 229, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+  }
+  100% {
+    background:
+      radial-gradient(circle at 80% 30%, rgba(79, 70, 229, 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 20% 70%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-black/40 border border-zinc-800/30 backdrop-blur-2xl;
+  }
+
+  .dark-veil-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 50%;
+    animation: particleFloat 20s ease-in-out infinite;
+  }
+
+  .particle:nth-child(odd) {
+    animation-direction: alternate;
+    animation-delay: -5s;
+  }
+
+  .particle:nth-child(3n) {
+    animation-delay: -10s;
+    background: rgba(79, 70, 229, 0.2);
+  }
+
+  .particle:nth-child(5n) {
+    animation-delay: -15s;
+    background: rgba(16, 185, 129, 0.2);
+  }
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate3d(100px, -100px, 0) rotate(90deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate3d(-50px, -200px, 0) rotate(180deg);
+    opacity: 0.2;
+  }
+  75% {
+    transform: translate3d(-150px, -100px, 0) rotate(270deg);
+    opacity: 0.8;
+  }
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth transitions for sections */
+section {
+  scroll-margin-top: 0;
+}
+
+/* Custom scrollbar for main content areas */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.5);
+}
+
+/* Spline canvas specific styling */
+canvas {
+  outline: none;
+}
+
+/* Enhanced glass morphism for panels */
+.enhanced-glass {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Fade-in animation for sections */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(50px);
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .particle {
+    display: none; /* Hide particles on mobile for performance */
+  }
+}
+
+/* Loading states */
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

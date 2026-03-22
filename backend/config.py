@@ -1,14 +1,18 @@
-import os
-from dotenv import load_dotenv
+"""Application settings loaded from environment variables."""
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-class Config:
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-    OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "sqlcoder:15b")
-    CACHE_SIZE = 100  # Maximum cached queries
-    QUERY_TIMEOUT = 120  # seconds (increased for large models)
+class Settings(BaseSettings):
+    DATABASE_URL: str
+    GROQ_API_KEY: str
+    OLLAMA_HOST: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "sqlcoder:15b"
+    CACHE_SIZE: int = 100
+    QUERY_TIMEOUT: int = 120
+    DB_POOL_MIN: int = 1
+    DB_POOL_MAX: int = 10
 
-config = Config()
+    model_config = SettingsConfigDict(env_file="../.env", extra="ignore")
+
+
+config = Settings()

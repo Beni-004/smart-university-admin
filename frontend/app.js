@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = (window.APP_CONFIG?.apiBase) ?? 'http://localhost:8000/api';
 
 // DOM Elements
 const userInput     = document.getElementById('user-input');

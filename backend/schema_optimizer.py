@@ -13,18 +13,20 @@ class SchemaOptimizer:
             "placements": ["placement", "job", "company", "recruit", "placed"]
         }
     
-    def load_schema(self):
+    def load_schema(self, force: bool = False) -> None:
         """Load complete database schema"""
-        if not self.full_schema:
-            schema_data = db.get_schema()
-            self.full_schema = {}
-            
-            for row in schema_data["rows"]:
-                table_name = row["table_name"]
-                columns = row["columns"]
-                self.full_schema[table_name] = columns
-    
-    def get_relevant_tables(self, question):
+        if self.full_schema and not force:
+            return
+
+        schema_data = db.get_schema()
+        self.full_schema = {}
+
+        for row in schema_data["rows"]:
+            table_name = row["table_name"]
+            columns = row["columns"]
+            self.full_schema[table_name] = columns
+
+    def get_relevant_tables(self, question: str) -> str:
         """Detect relevant tables from user question"""
         self.load_schema()
         

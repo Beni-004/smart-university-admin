@@ -1,18 +1,20 @@
+"""Ollama local LLM HTTP client with keepalive."""
 import requests
 import json
 import time
 import threading
 from config import config
+from utils import clean_sql
 
 class OllamaClient:
     def __init__(self):
         self.api_url = f"{config.OLLAMA_HOST}/api/generate"
         self.model = config.OLLAMA_MODEL
     
-    def generate_sql(self, prompt):
+    def generate_sql(self, prompt: str) -> str:
         """Generate SQL from natural language question using a pre-built prompt"""
 
-        
+
         try:
             # Call Ollama API
             response = requests.post(
@@ -28,34 +30,24 @@ class OllamaClient:
                 },
                 timeout=config.QUERY_TIMEOUT
             )
-            
+
             response.raise_for_status()
             result = response.json()
-            
+
             # Extract SQL from response
             sql = result.get("response", "").strip()
-            
+
             # Clean up the SQL
-            sql = self._clean_sql(sql)
-            
+            sql = clean_sql(sql)
+
             return sql
-            
+
         except requests.exceptions.Timeout:
             raise Exception("Ollama request timed out")
         except requests.exceptions.RequestException as e:
             raise Exception(f"Ollama API error: {str(e)}")
-    
-    def _clean_sql(self, sql):
-        """Clean SQL output from LLM"""
-        # Remove markdown code blocks
-        sql = sql.replace("```sql", "").replace("```", "")
-        # Remove extra whitespace
-        sql = " ".join(sql.split())
-        # Remove trailing semicolon if exists
-        sql = sql.rstrip(";")
-        return sql
-    
-    def start_keepalive(self):
+
+    def start_keepalive(self) -> None:
         """Start a background daemon thread to keep Ollama model loaded"""
         def _keepalive_loop():
             while True:
@@ -76,12 +68,12 @@ class OllamaClient:
         thread = threading.Thread(target=_keepalive_loop, daemon=True)
         thread.start()
 
-    def test_connection(self):
+    def test_connection(self) -> bool:
         """Test if Ollama is running"""
         try:
             response = requests.get(f"{config.OLLAMA_HOST}/api/tags")
             return response.status_code == 200
-        except:
+        except Exception:
             return False
 
 # Global Ollama client

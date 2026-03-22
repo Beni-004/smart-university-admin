@@ -1,0 +1,5 @@
+{
+  "name": "Smart University Admin",
+  "description": "An AI-powered administrative dashboard for managing university data with natural language queries and DBMS demonstrations.",
+  "requestFramePermissions": []
+}

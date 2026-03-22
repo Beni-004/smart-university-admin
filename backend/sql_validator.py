@@ -19,24 +19,24 @@ class SQLValidator:
         r"exec\s*\(",
     ]
     
-    def is_safe_query(self, sql):
+    def is_safe_query(self, sql: str) -> tuple[bool, str]:
         """Validate if SQL query is safe to execute"""
         sql_upper = sql.upper()
-        
+
         # Check for dangerous keywords
         for keyword in self.DANGEROUS_KEYWORDS:
             if keyword in sql_upper:
                 return False, f"Dangerous keyword detected: {keyword}"
-        
+
         # Check for SQL injection patterns
         for pattern in self.INJECTION_PATTERNS:
             if re.search(pattern, sql, re.IGNORECASE):
                 return False, f"Potential SQL injection detected"
-        
+
         # Must start with SELECT
         if not sql_upper.strip().startswith("SELECT"):
             return False, "Only SELECT queries are allowed"
-        
+
         return True, "Query is safe"
     
     def sanitize_sql(self, sql):

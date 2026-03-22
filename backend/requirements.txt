@@ -8,3 +8,4 @@ Faker
 chromadb
 sentence-transformers
 groq
+pydantic-settings>=2.0

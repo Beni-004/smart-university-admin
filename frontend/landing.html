@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart University Admin</title>
-    <meta name="description" content="Smart University Admin: Ask questions about your university database in plain English and get instant SQL results.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta name="description" content="Smart University Admin: Ask questions about your university database in plain English.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
         /* ══════════════════════════════════════════════════════════
@@ -46,25 +46,20 @@
            LAYOUT OVERRIDES FOR VERTICAL SCROLL
            ══════════════════════════════════════════════════════════ */
         html, body {
-            overflow-x: hidden;
-            overflow-y: auto;
-            height: auto;
+            overflow: auto !important;
+            height: auto !important;
             scroll-behavior: smooth;
-            background: transparent;
         }
 
         body {
-            display: block;
-            margin: 0;
-            padding: 0;
+            display: block !important;
+            background: transparent !important;
         }
 
         /* All content above background */
         .sticky-header,
-        .section-hero,
-        .section-chat,
-        .section-demo,
-        .site-footer {
+        .section-container,
+        .hero-section {
             position: relative;
             z-index: 1;
         }
@@ -73,10 +68,8 @@
            STICKY HEADER
            ══════════════════════════════════════════════════════════ */
         .sticky-header {
-            position: fixed;
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
             z-index: 100;
             background: rgba(10, 14, 26, 0.85);
             backdrop-filter: blur(12px);
@@ -85,7 +78,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s ease;
         }
 
         .nav-brand {
@@ -106,7 +98,6 @@
             font-weight: 500;
             font-size: 0.9rem;
             transition: color 0.2s;
-            cursor: pointer;
         }
 
         .nav-link:hover {
@@ -114,16 +105,16 @@
         }
 
         /* ══════════════════════════════════════════════════════════
-           HERO SECTION - FULL SCREEN
+           HERO SECTION
            ══════════════════════════════════════════════════════════ */
-        .section-hero {
+        .hero-section {
             width: 100%;
-            height: 100vh;
-            position: relative;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            padding: 0;
         }
 
         #canvas3d {
@@ -133,37 +124,6 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0;
-            transition: opacity 0.6s ease;
-        }
-
-        #canvas3d.loaded {
-            opacity: 1;
-        }
-
-        #spline-loader {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            z-index: 2;
-            transition: opacity 0.4s ease;
-        }
-
-        #spline-loader.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .spline-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.15);
-            border-top-color: #4F46E5;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
         }
 
         .hero-overlay {
@@ -172,14 +132,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(10, 14, 26, 0.2) 0%, rgba(10, 14, 26, 0.6) 80%);
-            z-index: 3;
+            background: radial-gradient(circle at center, rgba(10, 14, 26, 0.3) 0%, rgba(10, 14, 26, 0.7) 80%);
+            z-index: 2;
             pointer-events: none;
         }
 
         .hero-content {
             position: relative;
-            z-index: 4;
+            z-index: 3;
             text-align: center;
             color: white;
             max-width: 700px;
@@ -225,11 +185,10 @@
         }
 
         /* ══════════════════════════════════════════════════════════
-           SECTION CONTAINERS - FULL SCREEN
+           SECTION CONTAINERS
            ══════════════════════════════════════════════════════════ */
-        .section-chat, .section-demo {
-            min-height: 100vh;
-            padding: 120px 20px 80px;
+        .section-container {
+            padding: 80px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             background: rgba(10, 14, 26, 0.4);
             backdrop-filter: blur(10px);
@@ -255,61 +214,36 @@
 
         /* Override main area heights for scroll */
         .main-area {
-            height: auto;
-            min-height: auto;
-            overflow: visible;
-            display: block;
+            height: auto !important;
+            min-height: auto !important;
+            overflow: visible !important;
+            display: block !important;
         }
 
         .split-pane {
-            height: auto;
-            min-height: 70vh;
+            height: auto !important;
+            min-height: 600px;
             max-width: 1400px;
             margin: 0 auto;
         }
 
         .demo-wrap {
-            height: auto;
-            overflow: visible;
+            height: auto !important;
+            overflow: visible !important;
             max-width: 1400px;
             margin: 0 auto;
-            min-height: 70vh;
         }
 
         /* Content cards on dark theme */
         .chat-col,
         .results-col {
             background: rgba(255, 255, 255, 0.03);
-            border-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            border-color: rgba(255, 255, 255, 0.1) !important;
         }
 
         .presenter-card {
             background: rgba(255, 255, 255, 0.03);
             border-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .msg-bubble.bot-bubble {
-            background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Input styling for dark theme */
-        #user-input {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        #user-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        #user-input:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--blue);
         }
 
         /* Footer on dark */
@@ -319,16 +253,9 @@
             color: #94a3b8;
             position: relative;
             z-index: 1;
-            backdrop-filter: blur(10px);
         }
 
         @media (max-width: 768px) {
-            .sticky-header {
-                padding: 12px 16px;
-            }
-            .nav-links {
-                gap: 16px;
-            }
             .hero-title {
                 font-size: 2.5rem;
             }
@@ -338,22 +265,6 @@
             .section-title {
                 font-size: 2rem;
             }
-            .section-chat, .section-demo {
-                padding: 100px 16px 60px;
-            }
-            .split-pane {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            .chat-col {
-                border-right: none;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                max-height: 50vh;
-            }
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -369,23 +280,15 @@
     <header class="sticky-header">
         <div class="nav-brand">Smart University Admin</div>
         <nav class="nav-links">
-            <a class="nav-link" onclick="scrollToSection('hero')">Home</a>
-            <a class="nav-link" onclick="scrollToSection('chat')">Chat</a>
-            <a class="nav-link" onclick="scrollToSection('demo')">Demo</a>
+            <a href="#hero" class="nav-link">Home</a>
+            <a href="#chat-section" class="nav-link">Chat</a>
+            <a href="#demo-section" class="nav-link">Demo</a>
         </nav>
     </header>
 
     <!-- ═══ HERO SECTION ═══ -->
-    <section id="hero" class="section-hero">
-        <!-- Spline 3D loader -->
-        <div id="spline-loader">
-            <div class="spline-spinner"></div>
-        </div>
-
-        <!-- Spline 3D Canvas -->
+    <section id="hero" class="hero-section">
         <canvas id="canvas3d"></canvas>
-
-        <!-- Hero overlay and content -->
         <div class="hero-overlay"></div>
         <div class="hero-content">
             <h1 class="hero-title">Ask Your Database Anything</h1>
@@ -393,12 +296,12 @@
                 Smart University Admin translates your questions about students, attendance,
                 and courses into instant SQL results—no database knowledge required.
             </p>
-            <a class="hero-btn" onclick="scrollToSection('chat')">Get Started</a>
+            <a href="#chat-section" class="hero-btn">Get Started</a>
         </div>
     </section>
 
     <!-- ═══ CHAT SECTION ═══ -->
-    <section id="chat" class="section-chat">
+    <div id="chat-section" class="section-container">
         <div class="section-header">
             <h2 class="section-title">Query Chat Mode</h2>
             <p class="section-description">
@@ -406,7 +309,7 @@
             </p>
         </div>
 
-        <main class="main-area">
+        <main id="chat-panel" class="main-area">
             <div class="split-pane">
                 <!-- Left: Chat -->
                 <section class="chat-col">
@@ -464,10 +367,10 @@
                 </section>
             </div>
         </main>
-    </section>
+    </div>
 
     <!-- ═══ DEMO SECTION ═══ -->
-    <section id="demo" class="section-demo">
+    <div id="demo-section" class="section-container" style="background: rgba(15, 20, 31, 0.6);">
         <div class="section-header">
             <h2 class="section-title">DBMS Demo Mode</h2>
             <p class="section-description">
@@ -475,7 +378,7 @@
             </p>
         </div>
 
-        <main class="main-area">
+        <main id="demo-panel" class="main-area">
             <div class="demo-wrap">
                 <div class="demo-topbar">
                     <div id="demo-category-pills" class="pill-bar"></div>
@@ -503,7 +406,7 @@
                 </div>
             </div>
         </main>
-    </section>
+    </div>
 
     <!-- ═══ FOOTER ═══ -->
     <footer class="site-footer">
@@ -511,20 +414,12 @@
         <button class="footer-link" onclick="clearCache()">Clear cache</button>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Dummy elements for script compatibility -->
+    <div id="tab-chat" style="display:none;"></div>
+    <div id="tab-demo" style="display:none;"></div>
+
     <script>
         window.APP_CONFIG = window.APP_CONFIG || {};
-
-        // Smooth scroll navigation
-        function scrollToSection(sectionId) {
-            const element = document.getElementById(sectionId);
-            if (element) {
-                element.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        }
     </script>
     <script src="app.js"></script>
     <script src="demo.js"></script>
@@ -537,23 +432,23 @@
 
         function resizeVeilCanvas() {
             veilCanvas.width = window.innerWidth;
-            veilCanvas.height = document.body.scrollHeight;
+            veilCanvas.height = window.innerHeight;
         }
         resizeVeilCanvas();
         window.addEventListener('resize', resizeVeilCanvas);
 
         // Particles
         const particles = [];
-        const particleCount = 80;
+        const particleCount = 60;
 
         class Particle {
             constructor() {
                 this.x = Math.random() * veilCanvas.width;
                 this.y = Math.random() * veilCanvas.height;
-                this.vx = (Math.random() - 0.5) * 0.4;
-                this.vy = (Math.random() - 0.5) * 0.4;
-                this.radius = Math.random() * 2 + 0.5;
-                this.opacity = Math.random() * 0.4 + 0.2;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3;
+                this.radius = Math.random() * 2 + 1;
+                this.opacity = Math.random() * 0.5 + 0.2;
             }
 
             update() {
@@ -588,9 +483,9 @@
                     const dy = particles[i].y - particles[j].y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
 
-                    if (dist < 120) {
+                    if (dist < 150) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(148, 163, 184, ${0.08 * (1 - dist / 120)})`;
+                        ctx.strokeStyle = `rgba(148, 163, 184, ${0.1 * (1 - dist / 150)})`;
                         ctx.lineWidth = 1;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
@@ -615,37 +510,23 @@
         import { Application } from 'https://esm.sh/@splinetool/runtime';
 
         const canvas = document.getElementById('canvas3d');
-        const splineLoader = document.getElementById('spline-loader');
         const spline = new Application(canvas);
 
-        // Load your Spline scene (using the exact URL you provided)
+        // Load your Spline scene
         spline.load('https://prod.spline.design/OC9-QHrIYJURCTbx/scene.splinecode')
             .then(() => {
-                console.log('✅ Spline 3D scene loaded successfully');
+                console.log('✅ Spline scene loaded successfully');
 
-                // Hide loader and show canvas with fade-in
-                splineLoader.classList.add('hidden');
-                canvas.classList.add('loaded');
-
-                // Optional: Add event listeners for interactivity
+                // Optional: Add event listeners
                 spline.addEventListener('mouseDown', (e) => {
                     console.log('3D object clicked:', e.target?.name);
                 });
-
-                spline.addEventListener('mouseHover', (e) => {
-                    if (e.target?.name) {
-                        canvas.style.cursor = 'pointer';
-                    }
-                });
-
             })
             .catch((error) => {
-                console.error('Failed to load Spline 3D scene:', error);
-                // Hide loader even on error
-                splineLoader.classList.add('hidden');
+                console.error('Failed to load Spline scene:', error);
             });
 
-        // Initialize demo mode after everything loads
+        // Initialize demo mode since tabs are removed
         window.addEventListener('load', () => {
             if (typeof initPresenter === 'function') {
                 initPresenter();

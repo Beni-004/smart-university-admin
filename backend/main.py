@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
+from pathlib import Path
 import time
 
 from database import db
@@ -27,10 +29,9 @@ async def lifespan(app: FastAPI):
     
     # Test Ollama connection
     if not ollama_client.test_connection():
-        print("❌ Ollama is not running. Start Ollama first!")
-        raise Exception("Ollama not available")
+        print("⚠️  Ollama not reachable — Groq-only mode. Fallback disabled.")
     else:
-        print("✅ Ollama connected successfully")
+        print("✅ Ollama connected — fallback enabled.")
         ollama_client.start_keepalive()
     
     # Load database schema
@@ -132,7 +133,7 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "database": "connected" if db.connection else "disconnected",
+        "database": "connected" if db.pool else "disconnected",
         "ollama": "connected" if ollama_client.test_connection() else "disconnected"
     }
 
@@ -143,6 +144,22 @@ async def get_tables():
     return {
         "tables": list(optimizer.full_schema.keys())
     }
+
+
+@app.post("/api/schema/reload")
+async def reload_schema() -> dict:
+    """Force reload database schema"""
+    optimizer.load_schema(force=True)
+    return {"tables": list(optimizer.full_schema.keys()), "reloaded": True}
+
+
+# Optional: Serve React frontend in production
+# If frontend-v2/dist exists, mount it at root
+frontend_dist = Path(__file__).parent.parent / "frontend-v2" / "dist"
+if frontend_dist.exists() and frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")
+    print(f"✅ Serving React frontend from {frontend_dist}")
+
 
 if __name__ == "__main__":
     import uvicorn
