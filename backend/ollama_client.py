@@ -1,5 +1,7 @@
 import requests
 import json
+import time
+import threading
 from config import config
 
 class OllamaClient:
@@ -7,22 +9,9 @@ class OllamaClient:
         self.api_url = f"{config.OLLAMA_HOST}/api/generate"
         self.model = config.OLLAMA_MODEL
     
-    def generate_sql(self, user_question, schema_text):
-        """Generate SQL from natural language question"""
-        
-        # Build prompt
-        prompt = f"""{schema_text}
+    def generate_sql(self, prompt):
+        """Generate SQL from natural language question using a pre-built prompt"""
 
-Instructions:
-- Generate ONLY the SQL query, no explanations
-- Use proper PostgreSQL syntax
-- Include appropriate JOINs, WHERE clauses, and aggregations
-- Return ONLY valid SELECT statements
-- Do not include markdown code blocks or formatting
-
-User Question: {user_question}
-
-SQL Query:"""
         
         try:
             # Call Ollama API
@@ -66,6 +55,27 @@ SQL Query:"""
         sql = sql.rstrip(";")
         return sql
     
+    def start_keepalive(self):
+        """Start a background daemon thread to keep Ollama model loaded"""
+        def _keepalive_loop():
+            while True:
+                try:
+                    requests.post(
+                        self.api_url,
+                        json={
+                            "model": self.model,
+                            "prompt": "",
+                            "stream": False
+                        },
+                        timeout=5
+                    )
+                except Exception as e:
+                    print(f"⚠️ Keepalive failed: {e}")
+                time.sleep(240)
+        
+        thread = threading.Thread(target=_keepalive_loop, daemon=True)
+        thread.start()
+
     def test_connection(self):
         """Test if Ollama is running"""
         try:

@@ -1,0 +1,5 @@
+.env
+venv/
+chroma_db/
+repomix-output.xml
+__pycache__/

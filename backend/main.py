@@ -9,6 +9,8 @@ from cache import cache
 from schema_optimizer import optimizer
 from sql_validator import validator
 from ollama_client import ollama_client
+from llm_router import llm_router
+from demo_router import router as demo_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +31,7 @@ async def lifespan(app: FastAPI):
         raise Exception("Ollama not available")
     else:
         print("✅ Ollama connected successfully")
+        ollama_client.start_keepalive()
     
     # Load database schema
     optimizer.load_schema()
@@ -52,6 +55,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(demo_router, prefix="/api")
 
 # Request model
 class QueryRequest(BaseModel):
@@ -81,11 +86,8 @@ async def query_database(request: QueryRequest):
             cached_result["execution_time"] = time.time() - start_time
             return cached_result
         
-        # Get relevant tables
-        schema_text = optimizer.get_relevant_tables(question)
-        
-        # Generate SQL using Ollama
-        sql = ollama_client.generate_sql(question, schema_text)
+        # Generate SQL using llm_router
+        sql = llm_router.generate_sql(question)
         
         # Validate SQL
         is_safe, message = validator.is_safe_query(sql)

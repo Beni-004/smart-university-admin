@@ -1,77 +1,62 @@
 const API_BASE_URL = 'http://localhost:8000/api';
 
 // DOM Elements
-const userInput = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-const chatMessages = document.getElementById('chat-messages');
+const userInput     = document.getElementById('user-input');
+const sendBtn       = document.getElementById('send-btn');
+const chatMessages  = document.getElementById('chat-messages');
 const resultsContainer = document.getElementById('results-container');
-const sqlCode = document.getElementById('sql-code');
-const resultsTable = document.getElementById('results-table');
-const loadingDiv = document.getElementById('loading');
+const resultsEmpty  = document.getElementById('results-empty');
+const sqlCode       = document.getElementById('sql-code');
+const resultsTable  = document.getElementById('results-table');
+const loadingDiv    = document.getElementById('loading');
 const loadingMessage = document.getElementById('loading-message');
-const rowCount = document.getElementById('row-count');
 const executionTime = document.getElementById('execution-time');
-const cacheStatus = document.getElementById('cache-status');
-const cacheSize = document.getElementById('cache-size');
+const cacheStatusEl = document.getElementById('cache-status');
+const cacheSize     = document.getElementById('cache-size');
 
 // Enter key to send
 userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendQuery();
-    }
+    if (e.key === 'Enter') sendQuery();
 });
 
 // Send query to backend
 async function sendQuery() {
     const question = userInput.value.trim();
-    
-    if (!question) {
-        alert('Please enter a question');
-        return;
-    }
-    
+    if (!question) return;
+
     // Add user message to chat
-    addMessage(question, 'user-message');
-    
+    addMessage(question, 'user');
+
     // Clear input
     userInput.value = '';
-    
-    // Show loading
+
+    // Show loading, hide results
     showLoading('Analyzing your question...');
     hideResults();
     disableInput(true);
-    
+
     try {
-        // Update loading message
         setTimeout(() => updateLoadingMessage('Finding relevant tables...'), 500);
         setTimeout(() => updateLoadingMessage('Generating SQL query...'), 1500);
         setTimeout(() => updateLoadingMessage('Executing query...'), 3000);
-        
-        // Call API
+
         const response = await fetch(`${API_BASE_URL}/query`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question })
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.detail || 'Query failed');
         }
-        
+
         const data = await response.json();
-        
-        // Display results
         displayResults(data);
-        
-        // Add success message to chat
-        addMessage(`✅ Query executed successfully! Found ${data.results.row_count} rows.`, 'assistant-message');
-        
+        addMessage(`✅ Query executed successfully! Found ${data.results.row_count} rows.`, 'bot');
     } catch (error) {
         console.error('Error:', error);
-        addMessage(`❌ Error: ${error.message}`, 'error-message');
+        addMessage(`❌ Error: ${error.message}`, 'error');
         hideResults();
     } finally {
         hideLoading();
@@ -82,46 +67,40 @@ async function sendQuery() {
 
 // Display query results
 function displayResults(data) {
-    // Show results container
-    resultsContainer.style.display = 'block';
-    
-    // Display SQL
+    resultsEmpty.style.display = 'none';
+    resultsContainer.style.display = 'flex';
+
     sqlCode.textContent = data.sql;
-    
-    // Display execution stats
-    executionTime.textContent = `⏱️ Execution Time: ${data.execution_time.toFixed(2)}s`;
-    cacheStatus.textContent = data.cached ? '💾 Cached Result' : '🔄 Fresh Query';
-    cacheStatus.style.background = data.cached ? '#4caf50' : '#ff9800';
-    cacheStatus.style.color = 'white';
-    cacheStatus.style.padding = '5px 10px';
-    cacheStatus.style.borderRadius = '5px';
-    
-    // Display row count
-    rowCount.textContent = `${data.results.row_count} rows`;
-    
-    // Build table
+
+    executionTime.textContent = `⏱ Execution Time: ${data.execution_time.toFixed(2)}s`;
+
+    if (data.cached) {
+        cacheStatusEl.textContent = '💾 Cached Result';
+        cacheStatusEl.style.background = '#D1FAE5';
+        cacheStatusEl.style.color = '#059669';
+    } else {
+        cacheStatusEl.textContent = '🔄 Fresh Result';
+        cacheStatusEl.style.background = '#EEF2FF';
+        cacheStatusEl.style.color = '#4F46E5';
+    }
+
     buildTable(data.results);
-    
-    // Scroll to results
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // Build HTML table from results
 function buildTable(results) {
     const { columns, rows } = results;
-    
+
     if (!rows || rows.length === 0) {
-        resultsTable.innerHTML = '<p style="padding: 20px; text-align: center;">No results found</p>';
+        resultsTable.innerHTML = '<tbody><tr><td style="padding:20px;text-align:center;color:#9CA3AF;">No results found</td></tr></tbody>';
         return;
     }
-    
-    // Build table HTML
+
     let html = '<thead><tr>';
-    columns.forEach(col => {
-        html += `<th>${col}</th>`;
-    });
+    columns.forEach(col => { html += `<th>${col}</th>`; });
     html += '</tr></thead><tbody>';
-    
+
     rows.forEach(row => {
         html += '<tr>';
         columns.forEach(col => {
@@ -130,23 +109,47 @@ function buildTable(results) {
         });
         html += '</tr>';
     });
-    
+
     html += '</tbody>';
     resultsTable.innerHTML = html;
 }
 
 // Add message to chat
-function addMessage(text, className) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${className}`;
-    messageDiv.textContent = text;
-    chatMessages.appendChild(messageDiv);
+function addMessage(text, type) {
+    const div = document.createElement('div');
+
+    if (type === 'user') {
+        div.className = 'msg msg-user';
+        div.innerHTML = `
+            <div class="msg-label">User:</div>
+            <div class="msg-bubble user-bubble">${escapeHTML(text)}</div>
+        `;
+    } else if (type === 'error') {
+        div.className = 'msg msg-error';
+        div.innerHTML = `
+            <div class="msg-label">AI:</div>
+            <div class="msg-bubble">${escapeHTML(text)}</div>
+        `;
+    } else {
+        div.className = 'msg msg-bot';
+        div.innerHTML = `
+            <div class="msg-label">AI:</div>
+            <div class="msg-bubble bot-bubble">${escapeHTML(text)}</div>
+        `;
+    }
+
+    chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Show/hide loading
+function escapeHTML(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Loading helpers
 function showLoading(message) {
-    loadingDiv.style.display = 'block';
+    resultsEmpty.style.display = 'none';
+    loadingDiv.style.display = 'flex';
     loadingMessage.textContent = message;
 }
 
@@ -158,9 +161,9 @@ function updateLoadingMessage(message) {
     loadingMessage.textContent = message;
 }
 
-// Show/hide results
 function hideResults() {
     resultsContainer.style.display = 'none';
+    resultsEmpty.style.display = 'flex';
 }
 
 // Enable/disable input
@@ -172,16 +175,19 @@ function disableInput(disabled) {
 // Copy SQL to clipboard
 function copySQL() {
     const sql = sqlCode.textContent;
+    const btn = document.getElementById('copy-sql-btn');
     navigator.clipboard.writeText(sql).then(() => {
-        alert('SQL copied to clipboard!');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy SQL'; }, 1500);
     });
 }
 
 // Clear chat
 function clearChat() {
     chatMessages.innerHTML = `
-        <div class="message system-message">
-            Chat cleared. Ask a new question!
+        <div class="msg msg-bot">
+            <div class="msg-label">AI:</div>
+            <div class="msg-bubble bot-bubble">Chat cleared. Ask a new question!</div>
         </div>
     `;
     hideResults();
@@ -190,17 +196,12 @@ function clearChat() {
 // Clear cache
 async function clearCache() {
     try {
-        const response = await fetch(`${API_BASE_URL}/cache/clear`, {
-            method: 'DELETE'
-        });
-        
+        const response = await fetch(`${API_BASE_URL}/cache/clear`, { method: 'DELETE' });
         if (response.ok) {
-            alert('Cache cleared successfully!');
             updateCacheStats();
         }
     } catch (error) {
         console.error('Error clearing cache:', error);
-        alert('Failed to clear cache');
     }
 }
 
@@ -215,7 +216,7 @@ async function updateCacheStats() {
     }
 }
 
-// Initialize on page load
+// Init
 window.addEventListener('load', () => {
     updateCacheStats();
     userInput.focus();
