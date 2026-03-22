@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Terminal } from 'lucide-react';
 import { getDemoCategories, getDemoCategoryResults, DemoCategory, DemoCategoryResponse, DemoQueryResult } from '../services/apiService';
 import { SQLDisplay } from './SQLDisplay';
 import { ResultsTable } from './ResultsTable';
@@ -84,11 +84,11 @@ export function DemoPanel() {
         animate={{ opacity: 1 }}
         className="flex h-full items-center justify-center"
       >
-        <div className="flex items-center gap-3 text-purple-400">
-          <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400" />
-          <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 [animation-delay:0.2s]" />
-          <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 [animation-delay:0.4s]" />
-          <span className="ml-2 text-sm text-purple-200/70">Loading demo queries...</span>
+        <div className="flex items-center gap-3 text-cyan-400 font-mono">
+          <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-400" />
+          <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.2s]" />
+          <div className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:0.4s]" />
+          <span className="ml-2 text-sm text-cyan-200/70">$ loading demo queries...</span>
         </div>
       </motion.div>
     );
@@ -102,8 +102,8 @@ export function DemoPanel() {
         animate={{ opacity: 1 }}
         className="flex h-full items-center justify-center"
       >
-        <div className="rounded-xl border border-red-500/30 bg-red-900/20 px-6 py-4 text-red-300 backdrop-blur-xl">
-          ⚠️ {error}
+        <div className="rounded-lg border border-red-500/30 bg-red-900/20 px-6 py-4 text-red-300 backdrop-blur-xl font-mono">
+          <span className="text-red-400">ERROR:</span> {error}
         </div>
       </motion.div>
     );
@@ -115,9 +115,9 @@ export function DemoPanel() {
         key="dbms-empty"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex h-full items-center justify-center text-purple-300/50"
+        className="flex h-full items-center justify-center text-cyan-300/50 font-mono"
       >
-        No demo queries available
+        $ no demo queries available
       </motion.div>
     );
   }
@@ -133,43 +133,53 @@ export function DemoPanel() {
       exit={{ opacity: 0, y: -10 }}
       className="flex flex-col h-full"
     >
-      {/* Top Bar with Categories and Navigation - Purple glass theme */}
-      <div className="flex-shrink-0 flex items-center justify-between border-b border-purple-500/20 bg-purple-900/20 px-6 py-3 backdrop-blur-xl rounded-t-xl">
-        <div className="flex flex-wrap gap-2">
-          {categories.map(cat => {
-            const isActive = queries.find((q, idx) => idx === currentIndex)?.categoryId === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => jumpToCategory(cat.id)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-all backdrop-blur-md ${
-                  isActive
-                    ? 'border-violet-400/50 bg-violet-500/30 text-violet-200'
-                    : 'border-purple-500/20 bg-purple-900/20 text-purple-300/70 hover:border-violet-400/30 hover:text-violet-300'
-                }`}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
+      {/* Top Bar - Terminal style header */}
+      <div className="flex-shrink-0 flex items-center justify-between bg-slate-800 px-4 py-2 rounded-t-lg border border-cyan-500/20 border-b-0">
+        <div className="flex items-center gap-4">
+          {/* Window controls */}
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-red-500/80" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+            <div className="w-3 h-3 rounded-full bg-green-500/80" />
+          </div>
+
+          {/* Categories as terminal tabs */}
+          <div className="flex flex-wrap gap-1">
+            {categories.map(cat => {
+              const isActive = queries.find((q, idx) => idx === currentIndex)?.categoryId === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => jumpToCategory(cat.id)}
+                  className={`rounded px-2 py-1 text-xs font-mono transition-all ${
+                    isActive
+                      ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/30'
+                      : 'text-cyan-400/60 hover:text-cyan-300 hover:bg-cyan-500/10'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-purple-300/50">
-            {currentIndex + 1} / {queries.length}
+          <span className="text-xs text-cyan-400/60 font-mono">
+            [{currentIndex + 1}/{queries.length}]
           </span>
           <div className="flex gap-1">
             <button
               onClick={handlePrev}
               disabled={currentIndex === 0}
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-purple-500/20 bg-purple-900/20 text-purple-300 transition-all hover:border-violet-400/50 hover:text-violet-300 disabled:opacity-30 backdrop-blur-md"
+              className="flex h-6 w-6 items-center justify-center rounded border border-cyan-500/20 bg-slate-700/50 text-cyan-300 transition-all hover:bg-cyan-500/20 disabled:opacity-30"
             >
               <ChevronLeft size={14} />
             </button>
             <button
               onClick={handleNext}
               disabled={currentIndex === queries.length - 1}
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-purple-500/20 bg-purple-900/20 text-purple-300 transition-all hover:border-violet-400/50 hover:text-violet-300 disabled:opacity-30 backdrop-blur-md"
+              className="flex h-6 w-6 items-center justify-center rounded border border-cyan-500/20 bg-slate-700/50 text-cyan-300 transition-all hover:bg-cyan-500/20 disabled:opacity-30"
             >
               <ChevronRight size={14} />
             </button>
@@ -177,48 +187,54 @@ export function DemoPanel() {
         </div>
       </div>
 
-      {/* Split Layout: SQL Query (30%) + Results (70%) */}
-      <div className="flex-1 grid grid-cols-10 gap-4 p-4 min-h-0 overflow-hidden">
-        {/* Left Column: Query Info & SQL (30%) */}
-        <div className="col-span-3 flex flex-col space-y-3 overflow-hidden">
+      {/* Main Content Area - Split Layout (25% SQL / 75% Results) */}
+      <div className="flex-1 grid grid-cols-12 gap-0 min-h-0 overflow-hidden border border-cyan-500/20 border-t-0 rounded-b-lg bg-slate-900/80 backdrop-blur-xl">
+        {/* Left Column: Query Info & SQL (25%) - Compact */}
+        <div className="col-span-3 flex flex-col border-r border-cyan-500/20 overflow-hidden">
+          {/* Query Header */}
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex-shrink-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex-shrink-0 p-3 border-b border-cyan-500/10"
           >
-            {/* Query Header */}
-            <div className="space-y-2">
-              <span className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${sectionColor}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`inline-block rounded px-2 py-0.5 text-xs font-mono font-semibold ${sectionColor}`}>
                 {currentQuery.section}
               </span>
-              <h3 className="text-base font-bold text-white line-clamp-2">{currentQuery.query.title}</h3>
-              <p className="text-xs text-purple-200/60 line-clamp-2">{currentQuery.query.question}</p>
             </div>
+            <h3 className="text-sm font-bold text-white line-clamp-1">{currentQuery.query.title}</h3>
+            <p className="text-xs text-cyan-300/60 line-clamp-2 mt-1">{currentQuery.query.question}</p>
           </motion.div>
 
-          {/* SQL Query - Fixed Height with Scroll - Purple glass theme */}
-          <div className="flex-1 flex flex-col space-y-2 min-h-0 overflow-hidden">
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-purple-300/60 flex-shrink-0">SQL Query</h4>
-            <div className="flex-1 rounded-xl overflow-hidden border border-purple-500/20 bg-purple-900/20 backdrop-blur-xl min-h-0">
-              <div className="h-full overflow-y-auto custom-scrollbar">
-                <SQLDisplay sql={currentQuery.query.sql} />
-              </div>
+          {/* SQL Query - Compact with scroll */}
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div className="px-3 py-2 text-xs font-mono text-cyan-500/60 flex items-center gap-2 border-b border-cyan-500/10 flex-shrink-0">
+              <Terminal size={12} />
+              <span>SQL Query</span>
+            </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <SQLDisplay sql={currentQuery.query.sql} />
             </div>
           </div>
         </div>
 
-        {/* Right Column: Results (70%) - Purple glass theme */}
-        <div className="col-span-7 flex flex-col space-y-2 overflow-hidden">
-          <div className="flex items-center justify-between flex-shrink-0">
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-purple-300/60">Query Results</h4>
+        {/* Right Column: Results (75%) - Larger */}
+        <div className="col-span-9 flex flex-col overflow-hidden">
+          {/* Results Header */}
+          <div className="flex items-center justify-between px-4 py-2 border-b border-cyan-500/10 flex-shrink-0">
+            <div className="flex items-center gap-2 text-xs font-mono">
+              <span className="text-green-400">$</span>
+              <span className="text-cyan-400">Query Results</span>
+            </div>
             {!currentQuery.query.error && currentQuery.query.rows.length > 0 && (
-              <span className="rounded bg-purple-500/20 px-2 py-1 text-xs font-medium text-purple-300">
-                {currentQuery.query.row_count} row{currentQuery.query.row_count !== 1 ? 's' : ''}
+              <span className="rounded bg-cyan-500/20 px-2 py-0.5 text-xs font-mono text-cyan-300">
+                {currentQuery.query.row_count} rows
               </span>
             )}
           </div>
 
+          {/* Results Content */}
           <motion.div
             key={currentIndex}
             initial={{ opacity: 0, x: 20 }}
@@ -226,30 +242,28 @@ export function DemoPanel() {
             className="flex-1 min-h-0 overflow-hidden"
           >
             {currentQuery.query.error ? (
-              <div className="flex items-center justify-center h-full rounded-xl border border-red-500/30 bg-red-900/20 px-6 py-4 text-red-300 backdrop-blur-xl">
-                <div className="text-center">
-                  <div className="text-2xl mb-2">⚠️</div>
-                  <div className="text-sm">{currentQuery.query.error}</div>
+              <div className="flex items-center justify-center h-full px-6 py-4">
+                <div className="text-center font-mono">
+                  <div className="text-red-400 text-2xl mb-2">✗</div>
+                  <div className="text-red-300 text-sm">{currentQuery.query.error}</div>
                 </div>
               </div>
             ) : currentQuery.query.rows.length > 0 ? (
-              <div className="rounded-xl overflow-hidden border border-purple-500/20 bg-purple-900/20 backdrop-blur-xl h-full">
-                <ResultsTable
-                  columns={currentQuery.query.columns}
-                  rows={currentQuery.query.rows.map(row => {
-                    const obj: any = {};
-                    currentQuery.query.columns.forEach((col, idx) => {
-                      obj[col] = row[idx];
-                    });
-                    return obj;
-                  })}
-                />
-              </div>
+              <ResultsTable
+                columns={currentQuery.query.columns}
+                rows={currentQuery.query.rows.map(row => {
+                  const obj: any = {};
+                  currentQuery.query.columns.forEach((col, idx) => {
+                    obj[col] = row[idx];
+                  });
+                  return obj;
+                })}
+              />
             ) : (
-              <div className="flex items-center justify-center h-full rounded-xl border border-purple-500/20 bg-purple-900/20 px-6 py-8 text-center text-purple-300/50 backdrop-blur-xl">
-                <div>
-                  <div className="text-2xl mb-2">📭</div>
-                  <div className="text-sm">No rows returned</div>
+              <div className="flex items-center justify-center h-full font-mono">
+                <div className="text-center">
+                  <div className="text-cyan-500/40 text-2xl mb-2">∅</div>
+                  <div className="text-cyan-400/40 text-sm">Query returned no rows</div>
                 </div>
               </div>
             )}
@@ -261,19 +275,19 @@ export function DemoPanel() {
 }
 
 function getSectionColor(section: string): string {
-  // Purple-based color palette for sections
+  // Cyan/Teal/Blue color palette for sections
   const colors: Record<string, string> = {
-    '1.1': 'bg-violet-500/30 text-violet-200 border border-violet-400/30',
-    '1.2': 'bg-purple-500/30 text-purple-200 border border-purple-400/30',
-    '1.3': 'bg-fuchsia-500/30 text-fuchsia-200 border border-fuchsia-400/30',
-    '1.4': 'bg-pink-500/30 text-pink-200 border border-pink-400/30',
-    '1.5': 'bg-rose-500/30 text-rose-200 border border-rose-400/30',
-    '1.6': 'bg-indigo-500/30 text-indigo-200 border border-indigo-400/30',
-    '1.7': 'bg-blue-500/30 text-blue-200 border border-blue-400/30',
-    '1.8': 'bg-violet-600/30 text-violet-200 border border-violet-400/30',
-    '1.9': 'bg-purple-600/30 text-purple-200 border border-purple-400/30',
-    '1.10': 'bg-fuchsia-600/30 text-fuchsia-200 border border-fuchsia-400/30',
+    '1.1': 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/30',
+    '1.2': 'bg-teal-500/30 text-teal-200 border border-teal-400/30',
+    '1.3': 'bg-blue-500/30 text-blue-200 border border-blue-400/30',
+    '1.4': 'bg-sky-500/30 text-sky-200 border border-sky-400/30',
+    '1.5': 'bg-indigo-500/30 text-indigo-200 border border-indigo-400/30',
+    '1.6': 'bg-cyan-600/30 text-cyan-200 border border-cyan-400/30',
+    '1.7': 'bg-teal-600/30 text-teal-200 border border-teal-400/30',
+    '1.8': 'bg-blue-600/30 text-blue-200 border border-blue-400/30',
+    '1.9': 'bg-sky-600/30 text-sky-200 border border-sky-400/30',
+    '1.10': 'bg-indigo-600/30 text-indigo-200 border border-indigo-400/30',
   };
 
-  return colors[section] || 'bg-purple-500/30 text-purple-200 border border-purple-400/30';
+  return colors[section] || 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/30';
 }

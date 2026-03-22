@@ -60,8 +60,8 @@ export const SplineHero: React.FC<SplineHeroProps> = ({ onLoad, onStartQuerying 
       {!isLoaded && !error && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <div className="space-y-4 text-center">
-            <div className="w-12 h-12 border-3 border-purple-400/20 border-t-purple-400 rounded-full animate-spin mx-auto" />
-            <p className="text-zinc-400 text-sm">Loading 3D Experience...</p>
+            <div className="w-12 h-12 border-3 border-cyan-400/20 border-t-cyan-400 rounded-full animate-spin mx-auto" />
+            <p className="text-cyan-300/60 text-sm font-mono">Loading 3D Experience...</p>
           </div>
         </div>
       )}
@@ -102,20 +102,20 @@ export const SplineHero: React.FC<SplineHeroProps> = ({ onLoad, onStartQuerying 
             <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-tight">
               Ask Your Database
               <br />
-              <span className="bg-gradient-to-r from-violet-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
                 Anything
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-cyan-100/60 max-w-2xl mx-auto leading-relaxed">
               Smart University Admin translates your questions about students,
               attendance, and courses into instant SQL results—no database knowledge required.
             </p>
             <div className="pt-4 pointer-events-auto">
               <button
                 onClick={onStartQuerying}
-                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-600 text-white font-semibold rounded-full
-                         hover:from-purple-500 hover:to-violet-500 transition-all duration-300
-                         shadow-[0_0_30px_rgba(139,92,246,0.4)] hover:shadow-[0_0_40px_rgba(139,92,246,0.6)]
+                className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-semibold rounded-full
+                         hover:from-cyan-400 hover:to-teal-400 transition-all duration-300
+                         shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:shadow-[0_0_40px_rgba(6,182,212,0.6)]
                          transform hover:scale-105"
               >
                 Start Querying
@@ -129,9 +129,9 @@ export const SplineHero: React.FC<SplineHeroProps> = ({ onLoad, onStartQuerying 
       {isLoaded && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
           <div className="flex flex-col items-center space-y-2 animate-bounce">
-            <p className="text-white/60 text-sm font-medium">Scroll to explore</p>
-            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-              <div className="w-1 h-3 bg-white/60 rounded-full mt-2 animate-pulse" />
+            <p className="text-cyan-200/60 text-sm font-medium">Scroll to explore</p>
+            <div className="w-6 h-10 border-2 border-cyan-400/30 rounded-full flex justify-center">
+              <div className="w-1 h-3 bg-cyan-400/60 rounded-full mt-2 animate-pulse" />
             </div>
           </div>
         </div>
