@@ -1,4 +1,5 @@
 .env
+.env.backup
 venv/
 chroma_db/
 repomix-output.xml
