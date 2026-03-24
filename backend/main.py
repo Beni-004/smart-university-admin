@@ -19,29 +19,40 @@ async def lifespan(app: FastAPI):
     """Lifespan event handler for startup and shutdown"""
     # Startup
     print("🚀 Starting Smart University Admin API...")
-    
+
     # Test database connection
     try:
         db.connect()
+        print("✅ Database connected")
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
         raise
-    
-    # Test Ollama connection
-    if not ollama_client.test_connection():
-        print("⚠️  Ollama not reachable — Groq-only mode. Fallback disabled.")
-    else:
-        print("✅ Ollama connected — fallback enabled.")
-        ollama_client.start_keepalive()
-    
+
     # Load database schema
     optimizer.load_schema()
     print("✅ Database schema loaded")
-    
-    print("✅ API ready at http://localhost:8000")
-    
+
+    # Check LLM services availability
+    print("\n🔍 Checking LLM services...")
+    groq_available = llm_router.groq_available
+    ollama_available = llm_router.ollama_available
+
+    if groq_available and ollama_available:
+        print("✅ Both Groq and Ollama available - Groq primary, Ollama fallback")
+        ollama_client.start_keepalive()
+    elif groq_available and not ollama_available:
+        print("✅ Groq-only mode - working without Ollama")
+    elif not groq_available and ollama_available:
+        print("✅ Ollama-only mode - working without Groq API")
+        ollama_client.start_keepalive()
+    else:
+        print("❌ No LLM service available!")
+        raise Exception("Neither Groq API nor Ollama is available. Please configure at least one.")
+
+    print("\n✅ API ready at http://localhost:8000\n")
+
     yield
-    
+
     # Shutdown
     print("👋 Shutting down Smart University Admin API...")
 
@@ -131,10 +142,15 @@ async def clear_cache():
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
+    groq_status = "connected" if llm_router.groq_available else "not configured"
+    ollama_status = "connected" if ollama_client.test_connection() else "disconnected"
+
     return {
         "status": "healthy",
         "database": "connected" if db.pool else "disconnected",
-        "ollama": "connected" if ollama_client.test_connection() else "disconnected"
+        "groq": groq_status,
+        "ollama": ollama_status,
+        "llm_service": "available" if (llm_router.groq_available or llm_router.ollama_available) else "unavailable"
     }
 
 @app.get("/api/tables")

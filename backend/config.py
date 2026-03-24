@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     DATABASE_URL: str
-    GROQ_API_KEY: str
+    GROQ_API_KEY: str | None = None
     OLLAMA_HOST: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "sqlcoder:15b"
     CACHE_SIZE: int = 100

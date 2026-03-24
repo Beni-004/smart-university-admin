@@ -2,17 +2,19 @@
 
 A full‑stack **Smart University Admin** system that lets you ask questions about a university database in plain English, then:
 
-1) Uses **Ollama (SQLCoder)** to generate a **PostgreSQL `SELECT` query**  
-2) Validates the SQL for safety (blocks destructive queries / injection patterns)  
-3) Executes the query on **PostgreSQL**  
-4) Displays the generated SQL + results in a simple **web UI**  
+1) Uses **Groq API or Ollama (SQLCoder)** to generate a **PostgreSQL `SELECT` query**
+2) Validates the SQL for safety (blocks destructive queries / injection patterns)
+3) Executes the query on **PostgreSQL**
+4) Displays the generated SQL + results in a simple **web UI**
 5) Caches repeated questions for faster responses
 
 ---
 
 ## Features
 
-- **Natural language → SQL** using Ollama (`sqlcoder` model)
+- **Natural language → SQL** using Groq API or Ollama (`sqlcoder` model)
+- **Flexible LLM configuration**: Works with Groq API, Ollama, or both
+- **Smart routing**: Groq primary with Ollama fallback (if both configured)
 - **Safe querying only**: validator restricts to `SELECT` and blocks dangerous keywords/patterns
 - **Schema-aware prompting** (loads DB schema and selects relevant tables)
 - **FastAPI backend** with clean API endpoints
@@ -33,8 +35,10 @@ A full‑stack **Smart University Admin** system that lets you ask questions abo
 - Requests
 
 **LLM / SQL Generation**
-- Ollama
-- Model: `sqlcoder` (example: `sqlcoder:15b`)
+- Groq API (cloud-based, fast)
+- Ollama (local inference)
+- Model: `sqlcoder` (example: `sqlcoder:15b` or `sqlcoder:7b`)
+- At least one LLM service required
 
 **Frontend**
 - React 19 + TypeScript
@@ -47,11 +51,11 @@ A full‑stack **Smart University Admin** system that lets you ask questions abo
 
 ## Repository Structure
 
-- `backend/` — FastAPI app + DB access + schema optimizer + SQL validation + Ollama client  
-- `frontend/` — Modern React frontend with TypeScript, Vite, and Tailwind CSS  
-- `database/` — SQL schema + fake data generator  
-- `ollama/` — prompt/system instructions for SQL generation  
-- `File.md` — full implementation/guide (source document)
+- `backend/` — FastAPI app + DB access + schema optimizer + SQL validation + LLM routing
+- `frontend/` — Modern React frontend with TypeScript, Vite, and Tailwind CSS
+- `database/` — SQL schema + fake data generator
+- `ollama/` — prompt/system instructions for SQL generation
+- `INSTALLATION.md` — detailed installation guide for Windows and Linux
 
 ---
 
@@ -60,8 +64,10 @@ A full‑stack **Smart University Admin** system that lets you ask questions abo
 - **Python** 3.10+
 - **Node.js** 18+ and npm
 - **PostgreSQL** 14+
-- **Ollama** installed and running
-- (Recommended) Enough RAM/VRAM for the chosen SQLCoder model
+- **At least ONE of the following LLM services:**
+  - **Groq API** (cloud-based, fast, requires API key from [console.groq.com](https://console.groq.com))
+  - **Ollama** (local, private, requires installation + model download)
+  - Both (recommended for best reliability)
 
 ---
 
@@ -90,22 +96,50 @@ cd database
 python generate_fake_data.py
 ```
 
-### 4) Pull the Ollama SQLCoder model
+### 3) Choose your LLM service (at least one required)
+
+**Option A: Use Groq API (Fast, Cloud-based)**
+- Get a free API key from [console.groq.com](https://console.groq.com)
+- No local installation needed
+- Fast responses
+
+**Option B: Use Ollama (Local, Private)**
 ```bash
+# Install Ollama first, then pull the model:
 ollama pull sqlcoder:15b
 # or a smaller one if needed:
 # ollama pull sqlcoder:7b
 ```
 
-### 5) Configure backend environment
+**Option C: Use Both (Recommended)**
+- Set up both Groq API and Ollama
+- System will use Groq as primary, Ollama as fallback
+
+### 4) Configure backend environment
 Create `backend/.env`:
+
+**If using Groq API only:**
+```env
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/university_db
+GROQ_API_KEY=gsk_your_api_key_here
+```
+
+**If using Ollama only:**
 ```env
 DATABASE_URL=postgresql://postgres:your_password@localhost:5432/university_db
 OLLAMA_HOST=http://localhost:11434
 OLLAMA_MODEL=sqlcoder:15b
 ```
 
-### 6) Install backend dependencies + run API
+**If using both (recommended):**
+```env
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/university_db
+GROQ_API_KEY=gsk_your_api_key_here
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=sqlcoder:15b
+```
+
+### 5) Install backend dependencies + run API
 ```bash
 cd backend
 python -m venv venv
@@ -126,7 +160,7 @@ Backend should be available at:
 Health check:
 - `http://localhost:8000/api/health`
 
-### 7) Set up and run the frontend
+### 6) Set up and run the frontend
 Create `frontend/.env.local`:
 ```env
 VITE_API_BASE_URL=http://localhost:8000/api
@@ -148,7 +182,7 @@ The frontend will be available at:
 
 1. Frontend sends `{ question }` to `POST /api/query`
 2. Backend loads relevant schema info for the question
-3. Ollama generates SQL from prompt + schema
+3. **Groq API** or **Ollama** generates SQL from prompt + schema
 4. SQL is validated (only safe `SELECT` allowed)
 5. SQL executes on PostgreSQL
 6. Response returns:
@@ -199,12 +233,23 @@ The frontend will be available at:
 
 ## Troubleshooting
 
+### “Neither Groq API nor Ollama is available”
+You need at least one LLM service:
+- Add `GROQ_API_KEY` to `backend/.env` and get API key from [console.groq.com](https://console.groq.com)
+- OR install Ollama and pull the SQLCoder model
+
 ### Backend says “Ollama not available”
-Make sure Ollama is running:
+If you're using Ollama, make sure it's running:
 ```bash
 ollama serve
 ollama list
 ```
+
+### Groq API errors
+If you're using Groq API:
+- Verify your `GROQ_API_KEY` is correct in `backend/.env`
+- Check your API key status at [console.groq.com](https://console.groq.com)
+- If you hit rate limits, system will automatically use Ollama (if configured)
 
 ### Database connection fails
 Check:
@@ -229,5 +274,6 @@ No license file is currently detected in the repository. Add a `LICENSE` file if
 
 ## Acknowledgements
 
+- Groq for fast cloud-based LLM inference
 - Ollama for local model serving
 - SQLCoder model for text-to-SQL generation
